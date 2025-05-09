@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 5px ; background-color: #F0FFFF; }
+      table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+      th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
+      th { background-color: #f2f2f2; }
+      .hidden { display: none; }
+
+      .login-container {
+  width: 300px;
+  margin: 80px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px #ddd;
+  text-align: center;
+  background-color: #DCDCDC;
+}
+
+.logo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 15px;
+}
+
+    </style>
+  </head>
+  <body>
+  <div id="loginSection" class="login-container">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/c/c0/Logo-ppmh-putar.gif" alt="Logo Sekolah" class="logo">
+  <h1>TK AL-QUR'AN MAMBA'UL HISAN SIDAYU GRESIK</h1>
+  <h2>Login Siswa</h2>
+  <form id="loginForm">
+      <label>Masukkan Nomor ID:</label><br>
+      <input type="text" id="id" required><br><br>
+      <label>Password:</label><br>
+      <input type="password" id="password" required><br><br>
+      <input type="submit" value="Login">
+    </form>
+  </div>
+
+  <div id="studentInfo" class="hidden">
+    <p><I>Assalamu'alaikum Warahmatullahi Wabarakatuh</I></p>
+    <p>Selamat datang siswa dengan nama panggilan:<B><span id="studentName"></span></B></p>
+    <p>Kelas: <span id="studentClass"></span></p>
+    
+    <h4>Rincian Pembayaran SPP Anda TP. 2025-2026 adalah sebagai berikut:</h4>
+    <table id="monthlyTable">
+      <tr>
+        <th>Bulan Hijriyah (1446-1447)</th>
+        <th>Status Pembayaran</th>
+      </tr>
+    </table>
+  </div>
+  <script>
+      document.getElementById('loginForm').onsubmit = function(e) {
+        e.preventDefault();
+        const id = document.getElementById('id').value;
+        const password = document.getElementById('password').value;
+
+        google.script.run.withSuccessHandler(function(response) {
+          if (response.valid) {
+            document.getElementById('studentName').textContent = response.name;
+            document.getElementById('studentClass').textContent = response.class;
+            document.getElementById('studentInfo').classList.remove('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            loadMonthlyData(response.id);
+          } else {
+            alert('ID atau password salah!');
+          }
+        }).validateLogin(id, password);
+      };
+
+      function loadMonthlyData(id) {
+        google.script.run.withSuccessHandler(function(result) {
+          const table = document.getElementById('monthlyTable');
+          // Hapus baris sebelumnya kecuali header
+          while (table.rows.length > 1) {
+            table.deleteRow(1);
+          }
+
+          result.bulan.forEach((bulan, i) => {
+            const row = table.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            cell1.textContent = bulan;
+            cell2.textContent = result.pembayaran[i] || '-';
+          });
+        }).getStudentMonthlyData(id);
+      }
+    
+    </script>
+  </body>
+</html>
+
